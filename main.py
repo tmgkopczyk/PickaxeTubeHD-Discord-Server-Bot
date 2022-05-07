@@ -251,7 +251,6 @@ async def profile(ctx):
 @client.command(name='ticket',help = 'Sends a ticket to the developers')
 async def ticket(ctx,reason):
   id = ctx.message.author
-  print("{}: {}".format(id,reason))
   with open("ticket_list.json",'a') as ticket_file:
     ticket_file.write("Username: {} Reason: {}\n".format(id,reason))
     ticket_file.close()
