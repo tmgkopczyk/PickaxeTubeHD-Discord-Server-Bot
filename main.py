@@ -7,7 +7,6 @@ from keep_alive import keep_alive
 from datetime import datetime
 import requests
 import json
-
 from pprint import pprint
 
 from discord.ext.tasks import loop
@@ -16,10 +15,12 @@ import twitch
 
 client = commands.Bot(command_prefix='-', intents=discord.Intents.all())
 
+
 welcome_msg_id = 954489003002974208
 my_secret = os.environ["TOKEN"]
 #hypixel_api_key = os.environ["Hypixel_API_Key"]
 pickaxetubehd_teal = 0x2bc7ad
+
 
 
 @client.event
@@ -246,7 +247,22 @@ async def profile(ctx):
         streamer_profile.set_author(name = '{}'.format(user_info['display_name']),icon_url="{}".format(user_info["profile_image_url"]))
         streamer_profile.set_footer(text='Twitch', icon_url='https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png')
     await ctx.send(content = "Hey everyone, {} is now live over at https://www.twitch.tv/{}".format(user_info['display_name'],user_info['login']), embed=streamer_profile)
-        
+
+@client.command(name='ticket',help = 'Sends a ticket to the developers')
+async def ticket(ctx,reason):
+  id = ctx.message.author
+  print("{}: {}".format(id,reason))
+  with open("ticket_list.json",'a') as ticket_file:
+    ticket_file.write("Username: {} Reason: {}\n".format(id,reason))
+    ticket_file.close()
+  ticket_submission_msg = discord.Embed(
+    title = "Message Received",
+    description = "Thank you for submitting a ticket, {0.display_name}. We appreciate your feedback.".format(id),
+    timestamp = datetime.now(),
+    color = pickaxetubehd_teal
+  )
+  await ctx.send(embed = ticket_submission_msg)
+    
 @client.command(name='stream',
                 help="sends an embed message to the announcements channel.")
 async def stream(ctx):
