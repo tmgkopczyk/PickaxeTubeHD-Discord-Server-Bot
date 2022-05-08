@@ -1,5 +1,4 @@
 import discord
-
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
 import os
@@ -32,8 +31,7 @@ async def on_ready():
 @commands.has_permissions(administrator=True)
 async def kick(ctx, member: discord.Member, *, reason=None):
     await member.kick(reason=reason)
-    await ctx.send("Kicked {0} for reason {1} ".format(member.mention, reason))
-
+    await ctx.send("Kicked {0} for reason {1} ".format(member.mention, reason)) 
 
 @client.command()
 async def announcement(ctx):
@@ -250,7 +248,7 @@ async def profile(ctx):
 
 @client.command(name='ticket',help = 'Sends a ticket to the developers')
 async def ticket(ctx,reason):
-  id = ctx.message.author.id
+  id = ctx.author.display_name
   ticket_entry = {}
   ticket_entry["Username: {}".format(id)] = "Reason: {}".format(reason)
   ticket = json.dumps(ticket_entry)
@@ -263,7 +261,7 @@ async def ticket(ctx,reason):
     timestamp = datetime.now(),
     color = pickaxetubehd_teal
   )
-  await ctx.send(embed = ticket_submission_msg)
+  await ctx.author.send(embed = ticket_submission_msg)
     
 @client.command(name='stream',
                 help="sends an embed message to the announcements channel.")
