@@ -235,6 +235,7 @@ async def profile(ctx):
     for user in range(len(profiles)):
       if profiles[user]['display_name'] =='pickaxetubehd':
         user_info = profiles[user]
+        print(user_info)
         streamer_profile = discord.Embed(
           title = '{}'.format(user_info['display_name']),
           url = "https://twitch.tv/{}".format(user_info['login']),
@@ -246,17 +247,19 @@ async def profile(ctx):
         streamer_profile.set_image(url = user_info['offline_image_url'])
         streamer_profile.set_author(name = '{}'.format(user_info['display_name']),icon_url="{}".format(user_info["profile_image_url"]))
         streamer_profile.set_footer(text='Twitch', icon_url='https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png')
-    await ctx.send(content = "Hey everyone, {} is now live over at https://www.twitch.tv/{}".format(user_info['display_name'],user_info['login']), embed=streamer_profile)
 
 @client.command(name='ticket',help = 'Sends a ticket to the developers')
 async def ticket(ctx,reason):
-  id = ctx.message.author
-  with open("ticket_list.json",'a') as ticket_file:
-    ticket_file.write("Username: {} Reason: {}\n".format(id,reason))
-    ticket_file.close()
+  id = ctx.message.author.id
+  ticket_entry = {}
+  ticket_entry["Username: {}".format(id)] = "Reason: {}".format(reason)
+  ticket = json.dumps(ticket_entry)
+  with open('ticket_list.json','a') as file:
+    file.write("{}\n".format(ticket))
+    file.close()
   ticket_submission_msg = discord.Embed(
     title = "Message Received",
-    description = "Thank you for submitting a ticket, {0.display_name}. We appreciate your feedback.".format(id),
+    description = "Thank you for submitting a ticket, {}. We appreciate your feedback.".format(ctx.message.author),
     timestamp = datetime.now(),
     color = pickaxetubehd_teal
   )
