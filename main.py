@@ -3,7 +3,8 @@ from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
 import os
 from keep_alive import keep_alive
-from datetime import datetime
+from datetime import datetime,timezone
+
 import requests
 import json
 from pprint import pprint
@@ -31,56 +32,67 @@ async def on_ready():
 @commands.has_permissions(administrator=True)
 async def kick(ctx, member: discord.Member, *, reason=None):
     await member.kick(reason=reason)
-    await ctx.send("Kicked {0} for reason {1} ".format(member.mention, reason)) 
+    await ctx.send("Kicked {0} for reason {1} ".format(member.mention, reason))
 
 @client.command()
 async def announcement(ctx):
-    await ctx.message.delete()
+    utc_now = int(datetime.utcnow().timestamp())
     users = twitch.get_users(config["watchlist"])
     streams = twitch.get_streams(users)
     profiles = twitch.get_profile_data(users)
-    stream = streams[0]
-    game_info = twitch.get_game_info(stream['game_name'])
-    game_id = game_info[0]['id']
-    game_preview_url = 'https://static-cdn.jtvnw.net/ttv-boxart/{}-600x800.jpg'.format(game_id)
-    for user in range(len(profiles)):
-      if profiles[user]['display_name'] == stream['user_name']:       
-        data = {
-          "content": "Hey @everyone, {} is now live over at [https://www.twitch.tv/{}](https://www.twitch.tv/{})!".format(stream['user_name'],stream['user_login'],stream['user_login']),
-          "embeds":[{
-            "title": stream['title'],
-            "description": "{} is now live on Twitch!".format(stream['user_name']),
-            "url": "https://twitch.tv/{}".format(stream['user_login']),
-            "color": pickaxetubehd_teal,
-            "timestamp": "{}".format(datetime.now()),
-            "footer": {
-              "icon_url": "https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png",
-              "text": "Twitch"
-            },
-            "thumbnail": {
-              "url": game_preview_url
-            },
-            "image": {
-              "url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_{}-1280x720.jpg".format(stream['user_login'])
-            },
-            "author": {
-              "name": stream['user_name'],
-              "icon_url": profiles[user]['profile_image_url']
-            },
-            "fields": 
-                [
-                  {
-                    "inline": True, "name": "Playing", "value": stream['game_name']
-                  }, 
-                  {
-                "inline": True, "name": "Viewer Count", "value": stream['viewer_count']
-                  }
-                ]
-                  }
-              ]
-            }
-        url = "https://discord.com/api/webhooks/971060069825392691/_8DBJn28yj6FF2aLh0UDP09nOcDzygNHC0lu-mMf3bVHjzrtaqhGLtjsYAYjRw4SjCJO"
-        result = requests.post(url, json=data)
+    
+    for i in range(len(streams)):
+      
+      stream = streams[i]
+      game_info = twitch.get_game_info(stream['game_name'])
+      game_id = game_info[0]['id']
+      game_preview_url = 'https://static-cdn.jtvnw.net/ttv-boxart/{}-600x800.jpg'.format(game_id)
+      for i in range(len(profiles)):
+        profile = profiles[i]
+        if stream['user_name'] == profile['display_name']:
+          data = {
+  "content": "Hey everyone, {} is now live over at [https://www.twitch.tv/{}](https://www.twitch.tv/{})!".format(stream['user_name'],stream['user_login'],stream['user_login']),
+  "embeds":[
+    {
+      "title": "{}".format(stream['title']),
+      "url": "https://www.twitch.tv/{}".format(stream['user_login']),
+      "color": 2869165,
+      "description":"{} is now live on Twitch!".format(profile['display_name']),
+      "timestamp": "{}".format(datetime.now()),
+      "fields": [
+        {
+          "name": "Playing",
+          "value": stream['game_name'],
+          "inline": True,
+        },
+        {
+          "name": "Viewer Count",
+          "value": stream['viewer_count'],
+          "inline": True,
+        }
+      ],
+      "author": {
+      "name": stream['user_name'],
+      "url": "https://discordapp.com",
+      "icon_url": profile['profile_image_url']
+      },
+      "footer": {
+        "text": "Twitch",
+        "icon_url":"https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png"
+      },
+    "thumbnail": {
+      "url": game_preview_url
+    },
+      
+      "image": {
+        "url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_{}-1920x1080.jpg?{}".format(stream['user_login'],utc_now)
+      }
+    }
+  ]
+    
+    }
+      url = "https://discord.com/api/webhooks/970806299803648030/wkKuS24axW8kL-WxiEFlSeGnDFP-w03b65OaDC5Zd3gNFq4Ps6GZjyoGt8hJa-uqFRkA"
+      result = requests.post(url=url,json=data)
 
 @client.event
 async def on_raw_reaction_add(payload):
@@ -231,20 +243,19 @@ async def profile(ctx):
     streams = twitch.get_streams(users)
     profiles = twitch.get_profile_data(users)
     for user in range(len(profiles)):
-      if profiles[user]['display_name'] =='pickaxetubehd':
-        user_info = profiles[user]
-        print(user_info)
-        streamer_profile = discord.Embed(
-          title = '{}'.format(user_info['display_name']),
-          url = "https://twitch.tv/{}".format(user_info['login']),
-          description = '{}'.format(user_info['description']),
-          timestamp = datetime.now(),
-          color = pickaxetubehd_teal
-        )
-        streamer_profile.add_field(name = "View Count",value = '{}'.format(user_info['view_count']))
-        streamer_profile.set_image(url = user_info['offline_image_url'])
-        streamer_profile.set_author(name = '{}'.format(user_info['display_name']),icon_url="{}".format(user_info["profile_image_url"]))
-        streamer_profile.set_footer(text='Twitch', icon_url='https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png')
+      user_info = profiles[user]
+      print(user_info)
+      streamer_profile = discord.Embed(
+        title = '{}'.format(user_info['display_name']),
+        url = "https://twitch.tv/{}".format(user_info['login']),
+        description = '{}'.format(user_info['description']),
+        timestamp = datetime.now(),
+        color = pickaxetubehd_teal
+      )
+      streamer_profile.add_field(name = "View Count",value = '{}'.format(user_info['view_count']))
+      streamer_profile.set_image(url = user_info['offline_image_url'])
+      streamer_profile.set_author(name = '{}'.format(user_info['display_name']),icon_url="{}".format(user_info["profile_image_url"]))
+      streamer_profile.set_footer(text='Twitch', icon_url='https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png')
 
 @client.command(name='ticket',help = 'Sends a ticket to the developers')
 async def ticket(ctx,reason):
@@ -267,6 +278,7 @@ async def ticket(ctx,reason):
                 help="sends an embed message to the announcements channel.")
 async def stream(ctx):
     await ctx.message.delete()
+    now_utc = int(datetime.utcnow().timestamp())
     users = twitch.get_users(config["watchlist"])
     streams = twitch.get_streams(users)
     profiles = twitch.get_profile_data(users)
@@ -287,7 +299,7 @@ async def stream(ctx):
         twitch_announcement.add_field(name = "Viewer Count",value = '{}'.format(stream['viewer_count']), inline = True)
         twitch_announcement.set_footer(text='Twitch', icon_url='https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png')
         twitch_announcement.set_author(name = stream['user_name'],icon_url = profiles[user]['profile_image_url'])
-        twitch_announcement.set_image(url = 'https://static-cdn.jtvnw.net/previews-ttv/live_user_{}-1280x720.jpg'.format(stream['user_login']))
+        twitch_announcement.set_image(url = 'https://static-cdn.jtvnw.net/previews-ttv/live_user_{}-1920x1080.jpg?{}'.format(stream['user_login'],now_utc))
         twitch_announcement.set_thumbnail(url=game_preview_url)
         await ctx.send(content = "Hey everyone, {} is now live over at https://www.twitch.tv/{}".format(stream['user_name'],stream['user_login']), embed=twitch_announcement)
       elif profiles[user]['display_name'] != stream['user_name']:
