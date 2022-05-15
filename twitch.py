@@ -57,6 +57,7 @@ def get_profile_data(login_names):
   response = requests.get("https://api.twitch.tv/helix/users", params=params, headers=headers)
   return response.json()['data']
 
+
 def get_game_info(game):
   params = {
     "name": game
@@ -79,3 +80,15 @@ def get_streams(users):
 
     response = requests.get("https://api.twitch.tv/helix/streams", params=params, headers=headers)
     return response.json()['data']
+
+def get_stream_tags(stream_id):
+  params = {
+        "broadcaster_id": stream_id
+    }
+  headers = {
+        "Authorization": "Bearer {}".format(config["access_token"]),
+        "Client-Id": config["client_id"]
+    }
+
+  response = requests.get("https://api.twitch.tv/helix/streams/tags", params=params, headers=headers)
+  return response.json()['data']
