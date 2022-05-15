@@ -258,7 +258,6 @@ async def clear(ctx, amount=5):
     await ctx.channel.purge(limit=amount + 1)
 
 
-
 @client.command(name='ticket',help = 'Sends a ticket to the developers')
 async def ticket(ctx,reason):
   id = ctx.author.display_name
