@@ -258,26 +258,6 @@ async def clear(ctx, amount=5):
     await ctx.channel.purge(limit=amount + 1)
 
 
-@client.command(name='profile',
-                help="sends an embed message to the announcements channel.")
-async def profile(ctx):
-    users = twitch.get_users(config["watchlist"])
-    streams = twitch.get_streams(users)
-    profiles = twitch.get_profile_data(users)
-    for user in range(len(profiles)):
-      user_info = profiles[user]
-      print(user_info)
-      streamer_profile = discord.Embed(
-        title = '{}'.format(user_info['display_name']),
-        url = "https://twitch.tv/{}".format(user_info['login']),
-        description = '{}'.format(user_info['description']),
-        timestamp = datetime.now(),
-        color = pickaxetubehd_teal
-      )
-      streamer_profile.add_field(name = "View Count",value = '{}'.format(user_info['view_count']))
-      streamer_profile.set_image(url = user_info['offline_image_url'])
-      streamer_profile.set_author(name = '{}'.format(user_info['display_name']),icon_url="{}".format(user_info["profile_image_url"]))
-      streamer_profile.set_footer(text='Twitch', icon_url='https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png')
 
 @client.command(name='ticket',help = 'Sends a ticket to the developers')
 async def ticket(ctx,reason):
