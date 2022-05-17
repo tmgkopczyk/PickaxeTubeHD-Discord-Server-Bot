@@ -16,3 +16,5 @@ This is the first official open-source Discord bot being used in the official Di
   * Changes the specified user's server name to that of which they want.
 * ### ping
   * Checks the bot's response time to the server.
+* ### Youtube and Twitch Notifications
+  * Twitch and YouTube API help to inform users when a new video or stream has been uploaded.
