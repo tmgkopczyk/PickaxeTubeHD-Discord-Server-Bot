@@ -4,8 +4,6 @@ This is the first official open-source Discord bot being used in the official Di
 
 ## Features
 
-* ### skyblock
-  * SkyBlock API allows player to view specifc stats from a profile that they specify. NOTE: We are not affiliated with Hypixel in any way!
 * ### hypixel
   * Hypixel API allows player to view specifc stats from gamemodes that are popular on the Hypixel server. NOTE: We are not affiliated with Hypixel in any way!
 * ### poll
