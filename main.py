@@ -14,11 +14,9 @@ client = commands.Bot(command_prefix='-', intents=discord.Intents.all())
 
 welcome_msg_id = 954489003002974208
 my_secret = os.environ["TOKEN"]
-#hypixel_api_key = os.environ["Hypixel_API_Key"]
+hypixel_api = os.environ["Hypixel_API_Key"]
 pickaxetubehd_teal = 0x2bc7ad
-
-
-
+  
 @client.event
 async def on_ready():
     print("We have logged in as {0.user}".format(client))
@@ -30,6 +28,52 @@ async def kick(ctx, member: discord.Member, *, reason=None):
     await member.kick(reason=reason)
     await ctx.send("Kicked {0} for reason {1} ".format(member.mention, reason))
 
+
+@client.command()
+async def hypixel(ctx, username,gamemode,profile_name=None):
+  mojangData = requests.get('https://api.mojang.com/users/profiles/minecraft/{}'.format(username)).json()
+  uuid = mojangData['id']
+  hypixel = requests.get("https://api.hypixel.net/player?key={}&uuid={}".format(hypixel_api,uuid)).json()
+  playerStats = []
+  gamemode_list = hypixel['player']['stats']
+  playerStats = []
+  if profile_name == None:
+    for game in gamemode_list:
+      if gamemode == game:
+        for stat in gamemode_list[game]:
+          playerStats.append("{}: {}".format(stat, gamemode_list[game][stat]))
+        break
+    hypixel_stats = discord.Embed(
+      title = "{}'s Stats for {}".format(username,gamemode),
+      description = "\n".join(playerStats),
+      timestamp = datetime.now(),
+      color = pickaxetubehd_teal
+    )
+    hypixel_stats.set_thumbnail(url='https://crafatar.com/avatars/{}?size=&default=MHF_Steve&overlay'.format(uuid))
+    await ctx.send(embed=hypixel_stats)
+  else:
+    skyblockData = requests.get('https://api.hypixel.net/skyblock/profiles?key={}&uuid={}'.format(hypixel_api,uuid)).json()
+    profile_list = skyblockData['profiles']
+    playerStats = []
+    for profile in range(len(profile_list)):
+      if profile_list[profile]['cute_name'] == profile_name:
+        member_list = profile_list[profile]['members']
+        for member in member_list:
+          if member == uuid:
+            for stat in member_list[member]['stats']:
+              playerStats.append("{}: {}".format(stat, int(member_list[member]['stats'][stat])))
+            break
+    skyblock_stats = discord.Embed(
+      title = "{}'s Stats for {}".format(username,gamemode),
+      description = "\n".join(playerStats),
+      timestamp = datetime.now(),
+      color = pickaxetubehd_teal
+    )
+    skyblock_stats.set_thumbnail(url='https://crafatar.com/avatars/{}?size=&default=MHF_Steve&overlay'.format(uuid))
+    await ctx.send(embed=skyblock_stats)
+
+
+  
 @client.command()
 async def video(ctx):
     api_key = "AIzaSyDY9NziRx7HW8Fw6b5JiAmUlan2_LgF1Dg"
