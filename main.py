@@ -16,12 +16,11 @@ welcome_msg_id = 954489003002974208
 my_secret = os.environ["TOKEN"]
 hypixel_api = os.environ["Hypixel_API_Key"]
 pickaxetubehd_teal = 0x2bc7ad
-  
 @client.event
 async def on_ready():
     print("We have logged in as {0.user}".format(client))
-
-
+     
+  
 @client.command(name='kick', help='Kicks a member from the server.')
 @commands.has_permissions(administrator=True)
 async def kick(ctx, member: discord.Member, *, reason=None):
@@ -115,10 +114,11 @@ async def stream(ctx):
       utc = datetime.utcnow().timestamp()
       for i in range(len(profiles)):
         profile = profiles[i]
-        if profile['display_name'] == stream['user_name']:
-          for i in range(len(tags)):
-            tag_list.append(tags[i]['localization_names']['en-us'])
-          data = {
+        if stream['user_name'] == 'pickaxetubehd':
+          if profile['display_name'] == stream['user_name']:
+            for i in range(len(tags)):
+              tag_list.append(tags[i]['localization_names']['en-us'])
+            data = {
    "content":"Hey @everyone, {} went live on Twitch!".format(stream['user_name']),
    "embeds":[
       {
@@ -301,6 +301,10 @@ async def changenick(ctx, member: discord.Member, nick):
 async def clear(ctx, amount=5):
     await ctx.channel.purge(limit=amount + 1)
 
+
+  
+  
+  
 
 @client.command(name='ticket',help = 'Sends a ticket to the developers')
 async def ticket(ctx,reason):
