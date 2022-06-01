@@ -300,29 +300,6 @@ async def changenick(ctx, member: discord.Member, nick):
 @commands.has_permissions(manage_channels=True)
 async def clear(ctx, amount=5):
     await ctx.channel.purge(limit=amount + 1)
-
-
-  
-  
-  
-
-@client.command(name='ticket',help = 'Sends a ticket to the developers')
-async def ticket(ctx,reason):
-  id = ctx.author.display_name
-  ticket_entry = {}
-  ticket_entry["Username: {}".format(id)] = "Reason: {}".format(reason)
-  ticket = json.dumps(ticket_entry)
-  with open('ticket_list.json','a') as file:
-    file.write("{}\n".format(ticket))
-    file.close()
-  ticket_submission_msg = discord.Embed(
-    title = "Message Received",
-    description = "Thank you for submitting a ticket, {}. We appreciate your feedback.".format(ctx.message.author),
-    timestamp = datetime.now(),
-    color = pickaxetubehd_teal
-  )
-  await ctx.author.send(embed = ticket_submission_msg)
-
   
 with open("config.json") as config_file:
     config = json.load(config_file)
