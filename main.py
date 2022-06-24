@@ -9,16 +9,21 @@ import requests
 import json
 import twitch
 
-from youtube import profile_image, upload_playlist, videos, video_info, video_stats
-import requests
+from youtube import get_channel_info, get_upload_playlist, get_video_id, get_video_info
 
-client = commands.Bot(command_prefix='-', intents=discord.Intents.all())
+youtube_icon = "https://cdn.discordapp.com/avatars/975204350177734656/0787dc8827e13f0de294ae8c23ec356a.png"
+
+
 
 welcome_msg_id = 954489003002974208
 my_secret = os.environ["TOKEN"]
 hypixel_api = os.environ["Hypixel_API_Key"]
 pickaxetubehd_teal = 0x2bc7ad
 
+git_commit = requests.get("https://api.github.com/repos/tmgkopczyk/PickaxeTubeHD-Discord-Server-Bot/commits").json()
+git_commit = git_commit[0]['commit']['message']
+
+client = commands.Bot(command_prefix='-', intents=discord.Intents.all(),status = discord.Status.online, activity = discord.Game(name = git_commit))
 
 @client.event
 async def on_ready():
@@ -87,19 +92,102 @@ async def hypixel(ctx, username, gamemode, profile_name=None):
 
 
 @client.command()
-async def announcement(ctx, announcement_type):
+async def announcement(ctx,announcement_type):
     await ctx.message.delete()
-    youtube_icon = "https://cdn.discordapp.com/avatars/975204350177734656/0787dc8827e13f0de294ae8c23ec356a.png"
-    if announcement_type == "video":
-      video = {}
-      data = video
-    elif announcement_type == "stream":
-      stream = {}
-      data = stream
+    if announcement_type == "youtube":
+      youtube_announcement = {
+        "content":"Hey everyone, {} posted a new video over at [https://www.youtube.com/watch?v={}]([https://www.youtube.com/watch?v={}). Go check it out!".format(video_info['channelTitle'],videos,videos),
+        "embeds":[
+          {
+            "title": video_info['title'],
+            "description":video_info['description'],
+            "url":"https://www.youtube.com/watch?v={}".format(videos),
+            "color":16711680,
+            "timestamp": "{}".format(video_info['publishedAt']),
+            "footer":{
+              "icon_url":youtube_icon,
+              "text":"YouTube"
+            },
+            "image":{
+              "url":video_info['thumbnails']['maxres']['url']
+            },
+            "author":{
+              "name":video_info['channelTitle'],
+              "icon_url":profile_image
+            },
+            "fields":[
+              {
+                "name":"View Count",
+                "value":video_stats['viewCount'],
+                "inline":True
+              },
+              {
+                "name":"Like Count",
+                "value":video_stats['likeCount'],
+                "inline":True
+              },
+            ]
+          }
+        ]
+      }
+      print(announcement_type)
+    elif announcement_type == "twitch":
+      unix = int(datetime.now().timestamp())
+      users = twitch.get_users(config["watchlist"])
+      streams = twitch.get_streams(users)
+      profiles = twitch.get_profile_data(config["watchlist"])
+      for i in range(len(profiles)):
+        profile = profiles[i]
+        for i in range(len(streams)):
+          stream = streams[i]
+          if profile['display_name'] == stream['user_name']:
+            game = twitch.get_game_info(stream['game_name'])
+            game_info = game[0]
+            game_url = game_info['box_art_url'].format(width=600,height=800)
+            tags = twitch.get_stream_tags(profile['id'])
+            tag_names = []
+            for i in range(len(tags)):
+              tag_names.append(tags[i]['localization_names']['en-us'])
+            data = {
+              "content":"Hey everyone, {} just went live over at [https://www.twitch.tv/{}](https://www.twitch.tv/{}). Go watch the stream!".format(stream['user_name'],stream['user_login'],stream['user_login']),
+              "embeds":
+              [
+                {
+                "title":stream['title'],"description":"{} is now live on Twitch!".format(stream['user_name']),
+                "url":"https://www.twitch.tv/{}".format(stream['user_login']),
+                "color":9520895,
+                "timestamp":"{}.000Z".format(stream['started_at'][0:-1]),
+                "footer":{
+                "icon_url":"https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png",
+                "text":"Twitch | {}".format(", ".join(tag_names))
+                },
+                  "thumbnail":{
+                    "url":game_url
+                  },"image":{
+                    "url":stream['thumbnail_url'].format(width=1920,height=1080)+"?{}".format(unix)
+                  },
+                  "author":{
+                    "name":stream['user_name'],
+                    "icon_url":profile['profile_image_url'],
+                    "url":"https://www.twitch.tv/{}".format(stream['user_login'])
+                  },
+                  "fields":[
+                    {
+                      "name":"Playing",
+                      "value":stream['game_name'],
+                      "inline":True
+                    },
+                    {
+                      "name":"Viewers",
+                      "value":"{}".format(stream['viewer_count']),
+                      "inline":True
+                    }
+                  ]
+                }
+              ]
+            }
+            print(data)
 
-@client.command()
-async def stream(ctx):
-    await ctx.message.delete()
     
 
 
