@@ -9,8 +9,8 @@ import requests
 import json
 import twitch
 
-from youtube import get_channel_info, get_upload_playlist, get_video_id, get_video_info
-
+from youtube import get_channel_playlists,get_video_id,get_video_info,get_profile_info
+from twitch import get_users,get_user_streams,get_game_info,get_stream_tags,get_user_data
 youtube_icon = "https://cdn.discordapp.com/avatars/975204350177734656/0787dc8827e13f0de294ae8c23ec356a.png"
 
 
@@ -93,83 +93,96 @@ async def hypixel(ctx, username, gamemode, profile_name=None):
 
 @client.command()
 async def announcement(ctx,announcement_type):
+    channel_id = "UCHMXHaWoFTa4FRsm7aLaUbQ"
+    profile_info = get_profile_info(channel_id)
+    playlists = get_channel_playlists(channel_id)
+    video_id = get_video_id(playlists)
+    video_info = get_video_info(video_id)
+    video_stats = video_info['statistics']
+    video_id = video_info['id']
+    video_info = video_info['snippet']
+    unix = int(datetime.now().timestamp())
+    users = get_users(config["watchlist"])
+    streams = get_user_streams(users)
+    profiles = get_user_data(config["watchlist"])
     await ctx.message.delete()
     if announcement_type == "youtube":
-      youtube_announcement = {
-        "content":"Hey everyone, {} posted a new video over at [https://www.youtube.com/watch?v={}]([https://www.youtube.com/watch?v={}). Go check it out!".format(video_info['channelTitle'],videos,videos),
+      thumbnails = video_info['thumbnails']
+      if "maxres" not in thumbnails:
+        thumbnail = thumbnails['standard']['url']
+      elif "maxres" in thumbnails:
+        thumbnail = thumbnails['maxres']['url']
+      json = {
+        "content":"Hey everyone, {} just posted a new video over at [https://www.youtube.com/watch?v={}](https://www.youtube.com/watch?v={}). Go check it out!".format(profile_info['title'],video_id,video_id),
         "embeds":[
           {
-            "title": video_info['title'],
+            "title":video_info['title'],
             "description":video_info['description'],
-            "url":"https://www.youtube.com/watch?v={}".format(videos),
+            "url":"https://www.youtube.com/watch?v={}".format(video_id),
             "color":16711680,
-            "timestamp": "{}".format(video_info['publishedAt']),
+            "timestamp":"{}.000Z".format(video_info['publishedAt'][0:19]),
             "footer":{
-              "icon_url":youtube_icon,
-              "text":"YouTube"
+              "icon_url":"https://cdn.discordapp.com/avatars/974284926440595487/0787dc8827e13f0de294ae8c23ec356a.png",
+              "text":"Youtube"
             },
             "image":{
-              "url":video_info['thumbnails']['maxres']['url']
+              "url":thumbnail
             },
             "author":{
-              "name":video_info['channelTitle'],
-              "icon_url":profile_image
+              "url":"https://www.youtube.com/channel/{}".format(channel_id),
+              "name":profile_info['title'],
+              "icon_url":profile_info['thumbnails']['high']['url']
             },
             "fields":[
               {
-                "name":"View Count",
-                "value":video_stats['viewCount'],
+                "name":"Views",
+                "value":"{}".format(video_stats['viewCount']),
                 "inline":True
               },
               {
-                "name":"Like Count",
-                "value":video_stats['likeCount'],
+                "name":"Likes",
+                "value":"{}".format(video_stats['likeCount']),
                 "inline":True
-              },
+              }
             ]
           }
         ]
       }
-      print(announcement_type)
+      announcement = requests.post(url="https://discord.com/api/webhooks/975204350177734656/bCfwTQHfpnWNexoDwS_ak_XlQXNDaqNAtWkuOBf74J4Cm7_Z0uxFhxwOwcXFj3fDF3nU",json=json)
     elif announcement_type == "twitch":
       unix = int(datetime.now().timestamp())
-      users = twitch.get_users(config["watchlist"])
-      streams = twitch.get_streams(users)
-      profiles = twitch.get_profile_data(config["watchlist"])
-      for i in range(len(profiles)):
-        profile = profiles[i]
-        for i in range(len(streams)):
-          stream = streams[i]
+      users = get_users(config["watchlist"])
+      streams = get_user_streams(users)
+      profiles = get_user_data(config["watchlist"])
+      for i in range(len(streams)):
+        stream = streams[i]
+        for i in range(len(profiles)):
+          profile = profiles[i]
           if profile['display_name'] == stream['user_name']:
-            game = twitch.get_game_info(stream['game_name'])
-            game_info = game[0]
-            game_url = game_info['box_art_url'].format(width=600,height=800)
-            tags = twitch.get_stream_tags(profile['id'])
-            tag_names = []
-            for i in range(len(tags)):
-              tag_names.append(tags[i]['localization_names']['en-us'])
-            data = {
-              "content":"Hey everyone, {} just went live over at [https://www.twitch.tv/{}](https://www.twitch.tv/{}). Go watch the stream!".format(stream['user_name'],stream['user_login'],stream['user_login']),
-              "embeds":
-              [
+            game_info = get_game_info(stream['game_id'])
+            json = {
+              "content":"Hey everyone, {} is live on Twitch over at [https://www.twtich.tv/{}](https://www.twtich.tv/{}). Go check out the stream!".format(stream['user_name'],stream['user_login'],stream['user_login']),
+              "embeds":[
                 {
-                "title":stream['title'],"description":"{} is now live on Twitch!".format(stream['user_name']),
-                "url":"https://www.twitch.tv/{}".format(stream['user_login']),
-                "color":9520895,
-                "timestamp":"{}.000Z".format(stream['started_at'][0:-1]),
-                "footer":{
-                "icon_url":"https://cdn.discordapp.com/avatars/971060069825392691/9303e0604e5fe669844c13862e545368.png",
-                "text":"Twitch | {}".format(", ".join(tag_names))
-                },
+                  "title":stream['title'],
+                  "description":"{} is now live on Twitch!".format(stream['user_name']),
+                  "url":"https://www.twtich.tv/{}".format(stream['user_login']),
+                  "color":9520895,
+                  "timestamp":"{}.000Z".format(stream['started_at'][0:-1]),
+                  "footer":{
+                    "icon_url":"https://cdn.discordapp.com/avatars/990344626609205258/9303e0604e5fe669844c13862e545368.png",
+                    "text":"Twitch"
+                  },
                   "thumbnail":{
-                    "url":game_url
-                  },"image":{
+                    "url":game_info.format(width=600,height=800)
+                  },
+                  "image":{
                     "url":stream['thumbnail_url'].format(width=1920,height=1080)+"?{}".format(unix)
                   },
                   "author":{
                     "name":stream['user_name'],
-                    "icon_url":profile['profile_image_url'],
-                    "url":"https://www.twitch.tv/{}".format(stream['user_login'])
+                    "url":"https://www.twitch.tv/{}".format(stream['user_login']),
+                    "icon_url":profile['profile_image_url']
                   },
                   "fields":[
                     {
@@ -178,7 +191,7 @@ async def announcement(ctx,announcement_type):
                       "inline":True
                     },
                     {
-                      "name":"Viewers",
+                      "name":"Viewer Count",
                       "value":"{}".format(stream['viewer_count']),
                       "inline":True
                     }
@@ -186,10 +199,12 @@ async def announcement(ctx,announcement_type):
                 }
               ]
             }
-            print(data)
-
+            announcement = requests.post(url="https://discord.com/api/webhooks/970806299803648030/wkKuS24axW8kL-WxiEFlSeGnDFP-w03b65OaDC5Zd3gNFq4Ps6GZjyoGt8hJa-uqFRkA",json=json)
+      
     
 
+
+    
 
 @client.event
 async def on_raw_reaction_add(payload):
@@ -280,11 +295,13 @@ async def socials(ctx):
         "Twitter", "https://twitter.com/PickaxeTubeHD", "Twitch",
         "https://www.twitch.tv/pickaxetubehd"
     ]
-    linktree = discord.Embed(title='Socials',
-                             description="\n".join(socials_list),
-                             color=pickaxetubehd_teal,
-                             timestamp=datetime.now())
-    await ctx.channel.send(embed=linktree)
+    linktree = discord.Embed(
+      title='Socials',
+      description="\n".join(socials_list),
+      color=pickaxetubehd_teal,
+      timestamp=datetime.now()
+    )
+  await ctx.channel.send(embed=linktree)
 
 
 @client.command(name='ping',
