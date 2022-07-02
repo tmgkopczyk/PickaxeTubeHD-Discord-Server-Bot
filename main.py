@@ -102,9 +102,6 @@ async def announcement(ctx,announcement_type):
     video_id = video_info['id']
     video_info = video_info['snippet']
     unix = int(datetime.now().timestamp())
-    users = get_users(config["watchlist"])
-    streams = get_user_streams(users)
-    profiles = get_user_data(config["watchlist"])
     await ctx.message.delete()
     if announcement_type == "youtube":
       thumbnails = video_info['thumbnails']
@@ -113,7 +110,7 @@ async def announcement(ctx,announcement_type):
       elif "maxres" in thumbnails:
         thumbnail = thumbnails['maxres']['url']
       json = {
-        "content":"Hey everyone, {} just posted a new video over at [https://www.youtube.com/watch?v={}](https://www.youtube.com/watch?v={}). Go check it out!".format(profile_info['title'],video_id,video_id),
+        "content":"Hey @everyone, {} just posted a new video over at [https://www.youtube.com/watch?v={}](https://www.youtube.com/watch?v={}). Go check it out!".format(profile_info['title'],video_id,video_id),
         "embeds":[
           {
             "title":video_info['title'],
@@ -148,7 +145,7 @@ async def announcement(ctx,announcement_type):
           }
         ]
       }
-      announcement = requests.post(url="https://discord.com/api/webhooks/975204350177734656/bCfwTQHfpnWNexoDwS_ak_XlQXNDaqNAtWkuOBf74J4Cm7_Z0uxFhxwOwcXFj3fDF3nU",json=json)
+      announcement = requests.post(url="https://discord.com/api/webhooks/974284926440595487/UjrP-N3d6OLhx_wGlceciQJv0ia9m3xpXreXpua3gArUs-hSvmpkK2HXsKcmwj6ySiHQ",json=json)
     elif announcement_type == "twitch":
       unix = int(datetime.now().timestamp())
       users = get_users(config["watchlist"])
@@ -161,12 +158,12 @@ async def announcement(ctx,announcement_type):
           if profile['display_name'] == stream['user_name']:
             game_info = get_game_info(stream['game_id'])
             json = {
-              "content":"Hey everyone, {} is live on Twitch over at [https://www.twtich.tv/{}](https://www.twtich.tv/{}). Go check out the stream!".format(stream['user_name'],stream['user_login'],stream['user_login']),
+              "content":"Hey @everyone, {} just went live on Twitch over at [https://www.twitch.tv/{}](https://www.twitch.tv/{}). Go check out the stream!".format(stream['user_name'],stream['user_login'],stream['user_login']),
               "embeds":[
                 {
                   "title":stream['title'],
                   "description":"{} is now live on Twitch!".format(stream['user_name']),
-                  "url":"https://www.twtich.tv/{}".format(stream['user_login']),
+                  "url":"https://www.twitch.tv/{}".format(stream['user_login']),
                   "color":9520895,
                   "timestamp":"{}.000Z".format(stream['started_at'][0:-1]),
                   "footer":{
@@ -199,10 +196,7 @@ async def announcement(ctx,announcement_type):
                 }
               ]
             }
-            announcement = requests.post(url="https://discord.com/api/webhooks/970806299803648030/wkKuS24axW8kL-WxiEFlSeGnDFP-w03b65OaDC5Zd3gNFq4Ps6GZjyoGt8hJa-uqFRkA",json=json)
-      
-    
-
+            announcement = requests.post(url="https://discord.com/api/webhooks/990695203293761616/QFRj1A-QjRfXkFJ7Spmt03s47szpUV2zzt2pz7g4W2qTU8_IIUy4dnvBAqfYj-327DG3",json=json)
 
     
 
@@ -301,7 +295,7 @@ async def socials(ctx):
       color=pickaxetubehd_teal,
       timestamp=datetime.now()
     )
-  await ctx.channel.send(embed=linktree)
+    await ctx.channel.send(embed=linktree)
 
 
 @client.command(name='ping',

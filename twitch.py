@@ -32,7 +32,7 @@ def get_users(login_names):
     response = requests.get("https://api.twitch.tv/helix/users", params=params, headers=headers)
     return {entry["login"]: entry["id"] for entry in response.json()["data"]}
 
-def get_profile_photo(login_names):
+def get_profile_data(login_names):
     params = {
         "login": login_names
     }
@@ -43,9 +43,11 @@ def get_profile_photo(login_names):
     }
 
     response = requests.get("https://api.twitch.tv/helix/users", params=params, headers=headers)
-    return {entry["login"]: entry["profile_image_url"] for entry in response.json()["data"]}
+    return response.json()['data']
+  
+    
 
-def get_profile_data(login_names):
+def get_user_data(login_names):
   params = {
         "login": login_names
     }
@@ -60,15 +62,15 @@ def get_profile_data(login_names):
 
 def get_game_info(game):
   params = {
-    "name": game
+    "id": game
   }
   headers = {
         "Authorization": "Bearer {}".format(config["access_token"]),
         "Client-Id": config["client_id"]
     }
   response = requests.get("https://api.twitch.tv/helix/games", params=params, headers=headers)
-  return response.json()['data']
-def get_streams(users):
+  return response.json()['data'][0]['box_art_url']
+def get_user_streams(users):
     params = {
         "user_id": users.values()
     }
@@ -78,6 +80,17 @@ def get_streams(users):
         "Client-Id": config["client_id"]
     }
 
+    response = requests.get("https://api.twitch.tv/helix/streams", params=params, headers=headers)
+    return response.json()['data']
+
+def get_streams(users):
+    params = {
+      "user_id":users.values()
+    }
+    headers = {
+        "Authorization": "Bearer {}".format(config["access_token"]),
+        "Client-Id": config["client_id"]
+    }
     response = requests.get("https://api.twitch.tv/helix/streams", params=params, headers=headers)
     return response.json()['data']
 
